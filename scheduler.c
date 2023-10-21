@@ -145,12 +145,28 @@ void schedule(void){
     }
 }
 
+static void destroy(void){
+    /* Free dynamically allocated mem for thread, thread stack, and reset pointers for state.head and state.thread*/
+    struct thread * temp, * curr;
+    temp = state.head;
+    while (temp!=NULL)
+    {
+        FREE(temp->stack.memory_);
+        curr = temp;
+        temp = temp->link;
+        FREE(curr);
+    }
+    state.head = NULL;
+    state.thread = NULL;
+}
+
 void scheduler_execute(void){
     /* save context of scheduler/main thread */
     setjmp(state.context);
     /* schedule threads */
     schedule();
     /* destroy */
+    destroy();
 }
 
 void scheduler_yield(void){
