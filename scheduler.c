@@ -15,7 +15,6 @@
 #include <setjmp.h>
 #include "system.h"
 #include "scheduler.h"
-#include "time.h"
 
 /**
  * Needs:
@@ -40,7 +39,6 @@ struct thread{
     struct thread * link;
     scheduler_fnc_t fnc;
     void *args;
-    time_t starttime;
 };
 
 static struct{
@@ -67,7 +65,6 @@ struct thread * create_thread(scheduler_fnc_t fnc, void * args){
     t1->fnc = fnc;
     t1->args = args;
     t1->link = NULL;
-    t1->starttime = 0;
     return t1;
 }
 
@@ -130,7 +127,6 @@ void schedule(void){
         size_t pagesize;
         state.thread = t1;
         pagesize = page_size(); /* get num of bytes in a page */ 
-        state.thread->starttime = time(NULL);
         if(state.thread->status==STATUS_){
             state.thread->status = STATUS_RUNNING;
             /* reset stack pointer in cpu for this thread */ 
@@ -178,10 +174,8 @@ void scheduler_yield(void){
     val = setjmp(state.thread->context);
     if(val==0){
         /* save thread context, put this thread to sleep and give control to scheduler */
-        if(time(NULL)-state.thread->starttime>=1){
-            state.thread->status = STATUS_SLEEPING;
-            longjmp(state.context,1);
-        }
+        state.thread->status = STATUS_SLEEPING;
+        longjmp(state.context,1);
     }
     else{
         return;
