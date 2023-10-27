@@ -68,6 +68,10 @@ struct thread * create_thread(scheduler_fnc_t fnc, void * args){
     return t1;
 }
 
+void interrupt_handler(){
+    scheduler_yield();
+}
+
 int scheduler_create(scheduler_fnc_t fnc, void *args){
     /* create and initialize thread */
     struct thread * t;
@@ -164,6 +168,10 @@ void scheduler_execute(void){
     /* save context of scheduler/main thread */
     setjmp(state.context);
     /* schedule threads */
+    alarm(1);
+    if(SIG_ERR==signal(SIGALRM,&interrupt_handler)){
+        TRACE(0);
+    }
     schedule();
     /* destroy */
     destroy();
